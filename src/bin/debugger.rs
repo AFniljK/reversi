@@ -1,3 +1,5 @@
+use reversi;
+
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, FillOptions, MeshBuilder};
 use ggez::{conf, event, graphics};
@@ -62,7 +64,8 @@ impl MainState {
             if position & pieces == 0 {
                 continue;
             }
-            let (row, column) = row_column(position);
+
+            let (row, column) = reversi::bitboard_rowcol(position);
             mesh_builder.rectangle(
                 graphics::DrawMode::Fill(FillOptions::default()),
                 graphics::Rect::new(
@@ -116,7 +119,7 @@ impl EventHandler<GameError> for MainState {
                 let position = ctx.mouse.position();
                 let row = (position.y / (BOARD_SIZE / 8.0)) as u8;
                 let column = (position.x / (BOARD_SIZE / 8.0)) as u8;
-                let position = bitboard(row, column);
+                let position = reversi::bitboard_position(row, column);
                 if !self.is_occupied(position) {
                     self.capture(position);
                 }
@@ -148,6 +151,7 @@ impl EventHandler<GameError> for MainState {
                 self.black_pieces = 0;
             }
         };
+
         Ok(())
     }
 
@@ -160,28 +164,6 @@ impl EventHandler<GameError> for MainState {
         Ok(())
     }
 }
-
-fn bitboard(row: u8, column: u8) -> u64 {
-    let mut bitboard: u64 = 1;
-    bitboard <<= ((7 - row) * 8) + (7 - column);
-    return bitboard;
-}
-
-fn row_column(position: u64) -> (u8, u8) {
-    let mut row: u8 = 0;
-    let mut column: u8 = 0;
-    'running: for i in 0..64 {
-        let mut pointer: u64 = 1;
-        pointer <<= 63 - i;
-        if pointer & position != 0 {
-            row = i / 8;
-            column = i % 8;
-            break 'running;
-        }
-    }
-    (row, column)
-}
-
 fn main() -> GameResult {
     let mainstate = MainState::new(60, Color::from_rgba(150, 150, 255, 255));
     let mut config = conf::Conf::new();
