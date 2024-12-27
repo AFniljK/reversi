@@ -132,7 +132,7 @@ pub fn piece_positions(board: u64) -> Option<Vec<u64>> {
 }
 
 // Mesh for surrounding adjacent squares
-pub fn all_placable(board: u64) -> Option<u64> {
+fn all_placable(board: u64) -> Option<u64> {
     let mut possible_moves: u64 = 0;
     let positions = piece_positions(board)?;
     for position in positions {
