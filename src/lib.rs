@@ -39,7 +39,7 @@ pub fn bitboard_rowcol(position: u64) -> (u8, u8) {
     (row, column)
 }
 
-pub enum Position {
+enum Position {
     Inner6x6(u64),
     LeftEdge(u64),
     RightEdge(u64),
@@ -52,7 +52,7 @@ pub enum Position {
 }
 
 impl Position {
-    pub fn new(position: u64) -> Position {
+    fn new(position: u64) -> Position {
         let is_inner_6x6 = position & GENERAL_EDGE != 0;
         let is_edge_right = position & RIGHT_EDGE != 0;
         let is_edge_left = position & LEFT_EDGE != 0;
@@ -86,7 +86,7 @@ impl Position {
 
     // Checks surrounding 3x3 grid with position as center
     // for neighbouring pieces
-    pub fn placable_mesh(&self) -> u64 {
+    fn placable_mesh(&self) -> u64 {
         match self {
             Self::Inner6x6(position) => {
                 let (row, column) = bitboard_rowcol(*position);
@@ -148,7 +148,7 @@ pub fn all_placable(board: u64) -> Option<u64> {
 }
 
 // Mesh searching in "shifted" direction for encapsulating piece
-pub fn directional_mesh(
+fn directional_mesh(
     position: u64,
     ally: u64,
     foe: u64,
