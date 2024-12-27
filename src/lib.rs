@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 pub const GENERAL_EDGE: u64 = 35604928818740736;
 pub const TOP_EDGE: u64 = 18374686479671623680;
 pub const BOTTOM_EDGE: u64 = 255;
@@ -114,16 +116,206 @@ impl Position {
     }
 }
 
-pub fn all_placable(board: u64) -> u64 {
-    let mut possible_moves: u64 = 0;
+pub fn piece_positions(board: u64) -> Option<Vec<u64>> {
+    let mut positions = Vec::new();
     for i in 0..64 {
-        let position: u64 = 1 << (63 - i);
+        let position: u64 = 1 << i;
+        if board & position != 0 {
+            positions.push(position);
+        }
+    }
+    if positions.is_empty() {
+        return None;
+    }
+    return Some(positions);
+}
+
+pub fn all_placable(board: u64) -> Option<u64> {
+    let mut possible_moves: u64 = 0;
+    let positions = piece_positions(board)?;
+    for position in positions {
         if board & position != 0 {
             let mesh = Position::new(position).placable_mesh();
             possible_moves |= mesh & !board;
         }
     }
-    return possible_moves;
+    if possible_moves == 0 {
+        return None;
+    }
+    return Some(possible_moves);
+}
+
+pub fn directional_mesh(
+    position: u64,
+    ally: u64,
+    foe: u64,
+    shift: impl Fn(u64, u64) -> u64,
+    is_border: impl Fn(u64) -> bool,
+) -> Option<u64> {
+    let mut count = 1;
+    let mut mesh = 0;
+    loop {
+        let shifted = shift(position, count);
+        if (shifted & foe) != 0 {
+            mesh |= shifted;
+        } else if (shifted & ally) != 0 {
+            return Some(mesh);
+        } else {
+            return None;
+        }
+        if is_border(shifted) {
+            return None;
+        }
+        count += 1;
+    }
+}
+
+pub fn available_captures(ally: u64, foe: u64) -> Option<HashMap<u64, u64>> {
+    let psuedo_legal = all_placable(ally | foe)?;
+    let mut legal_moves = HashMap::new();
+    let mut all_star: u64 = 0;
+    let positions = piece_positions(psuedo_legal)?;
+
+    for position in positions {
+        let (row, col) = bitboard_rowcol(position);
+
+        // East
+        if col < 7 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| position >> shifted,
+                |position| {
+                    let (_row, column) = bitboard_rowcol(position);
+                    column == 7
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        // West
+        if col > 0 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| position << shifted,
+                |position| {
+                    let (_row, column) = bitboard_rowcol(position);
+                    column == 0
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        // North
+        if row > 0 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| position << shifted * 8,
+                |position| {
+                    let (row, _column) = bitboard_rowcol(position);
+                    row == 0
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        // South
+        if row < 7 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| position >> shifted * 8,
+                |position| {
+                    let (row, _column) = bitboard_rowcol(position);
+                    row == 7
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        // NorthEast
+        if row > 0 && col < 7 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| (position << shifted * 8) >> shifted * 1,
+                |position| {
+                    let (row, column) = bitboard_rowcol(position);
+                    row == 0 || column == 7
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        // SouthEast
+        if row < 7 && col < 7 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| (position >> shifted * 8) >> shifted * 1,
+                |position| {
+                    let (row, column) = bitboard_rowcol(position);
+                    row == 7 || column == 7
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        // NorthWest
+        if row > 0 && col > 0 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| (position << shifted * 8) << shifted * 1,
+                |position| {
+                    let (row, column) = bitboard_rowcol(position);
+                    row == 0 || column == 0
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        // SouthWest
+        if row < 7 && col > 0 {
+            if let Some(mesh) = directional_mesh(
+                position,
+                ally,
+                foe,
+                |position, shifted| (position >> shifted * 8) << shifted * 1,
+                |position| {
+                    let (row, column) = bitboard_rowcol(position);
+                    row == 7 || column == 0
+                },
+            ) {
+                all_star |= mesh;
+            }
+        }
+
+        if all_star != 0 {
+            legal_moves.insert(position, all_star);
+        }
+    }
+
+    if legal_moves.is_empty() {
+        return None;
+    }
+    return Some(legal_moves);
 }
 
 #[cfg(test)]
@@ -152,6 +344,6 @@ mod tests {
     #[test]
     fn test_all_placable() {
         let board = 33252697899776;
-        assert_eq!(all_placable(board), 17839856411507719);
+        assert_eq!(all_placable(board), Some(17839856411507719));
     }
 }
