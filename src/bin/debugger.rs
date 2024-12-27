@@ -59,24 +59,22 @@ impl MainState {
         color: Color,
     ) -> GameResult<graphics::Mesh> {
         let mesh_builder = &mut MeshBuilder::new();
-        for i in 0..64 {
-            let position: u64 = 1 << (63 - i);
-            if position & pieces == 0 {
-                continue;
+        if let Some(positions) = reversi::piece_positions(pieces) {
+            for position in positions {
+                let (row, column) = reversi::bitboard_rowcol(position);
+                mesh_builder.rectangle(
+                    graphics::DrawMode::Fill(FillOptions::default()),
+                    graphics::Rect::new(
+                        column as f32 * self.square_size,
+                        row as f32 * self.square_size,
+                        self.square_size,
+                        self.square_size,
+                    ),
+                    color,
+                )?;
             }
-
-            let (row, column) = reversi::bitboard_rowcol(position);
-            mesh_builder.rectangle(
-                graphics::DrawMode::Fill(FillOptions::default()),
-                graphics::Rect::new(
-                    column as f32 * self.square_size,
-                    row as f32 * self.square_size,
-                    self.square_size,
-                    self.square_size,
-                ),
-                color,
-            )?;
         }
+
         Ok(graphics::Mesh::from_data(ctx, mesh_builder.build()))
     }
 
