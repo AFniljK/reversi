@@ -350,4 +350,15 @@ mod tests {
         let board = 33252697899776;
         assert_eq!(all_placable(board), Some(17839856411507719));
     }
+
+    #[test]
+    fn text_all_star_mesh() {
+        let ally = 68987912192;
+        let foe = 34493956096;
+        let mut all_star = 0;
+        for mesh in available_captures(ally, foe).unwrap().values() {
+            all_star |= mesh;
+        }
+        assert_eq!(all_star, 34493956096);
+    }
 }
