@@ -148,4 +148,10 @@ mod tests {
         let position = 137438953472;
         assert_eq!(Position::new(position).placable_mesh(), 123490778742784);
     }
+
+    #[test]
+    fn test_all_placable() {
+        let board = 33252697899776;
+        assert_eq!(all_placable(board), 17839856411507719);
+    }
 }
