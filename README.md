@@ -1,8 +1,11 @@
 # Reversi
 An interface for studying/playing board game reversi.
 # Debugger
-Run: "cargo run --bin debugger" \
-To open debug-client \
+Run:
+<pre>
+cargo run --bin debugger
+</pre>
+To open debug-client
 <pre>
 Left Click   -> Place Piece
 B            -> Piece Setting Black
