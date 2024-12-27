@@ -164,6 +164,7 @@ impl EventHandler<GameError> for MainState {
         Ok(())
     }
 }
+
 fn main() -> GameResult {
     let mainstate = MainState::new(60, Color::from_rgba(150, 150, 255, 255));
     let mut config = conf::Conf::new();
