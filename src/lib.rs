@@ -116,6 +116,7 @@ impl Position {
     }
 }
 
+// Returns the position for pieces on the board in Vec form
 pub fn piece_positions(board: u64) -> Option<Vec<u64>> {
     let mut positions = Vec::new();
     for i in 0..64 {
@@ -130,6 +131,7 @@ pub fn piece_positions(board: u64) -> Option<Vec<u64>> {
     return Some(positions);
 }
 
+// Mesh for surrounding adjacent squares
 pub fn all_placable(board: u64) -> Option<u64> {
     let mut possible_moves: u64 = 0;
     let positions = piece_positions(board)?;
@@ -145,6 +147,7 @@ pub fn all_placable(board: u64) -> Option<u64> {
     return Some(possible_moves);
 }
 
+// Mesh searching in "shifted" direction for encapsulating piece
 pub fn directional_mesh(
     position: u64,
     ally: u64,
@@ -170,6 +173,7 @@ pub fn directional_mesh(
     }
 }
 
+// Mesh searching all 8 directions for encapsulating piece
 pub fn available_captures(ally: u64, foe: u64) -> Option<HashMap<u64, u64>> {
     let psuedo_legal = all_placable(ally | foe)?;
     let mut legal_moves = HashMap::new();
