@@ -177,10 +177,10 @@ fn directional_mesh(
 pub fn available_captures(ally: u64, foe: u64) -> Option<HashMap<u64, u64>> {
     let psuedo_legal = all_placable(ally | foe)?;
     let mut legal_moves = HashMap::new();
-    let mut all_star: u64 = 0;
     let positions = piece_positions(psuedo_legal)?;
 
     for position in positions {
+        let mut all_star: u64 = 0;
         let (row, col) = bitboard_rowcol(position);
 
         // East
@@ -356,9 +356,9 @@ mod tests {
         let ally = 68987912192;
         let foe = 34493956096;
         let mut all_star = 0;
-        for mesh in available_captures(ally, foe).unwrap().values() {
+        for mesh in available_captures(ally, foe).unwrap().keys() {
             all_star |= mesh;
         }
-        assert_eq!(all_star, 34493956096);
+        assert_eq!(all_star, 4415293751296);
     }
 }
