@@ -12,6 +12,6 @@ pub struct Args {
 
 impl Args {
     pub fn addr(&self) -> String {
-        format!("ws://{}:{}", self.address, self.port)
+        format!("{}:{}", self.address, self.port)
     }
 }
