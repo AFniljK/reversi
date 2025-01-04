@@ -1,3 +1,4 @@
+use ggez::input::keyboard::{KeyCode, KeyInput};
 use reversi;
 
 use ggez::glam::Vec2;
@@ -13,42 +14,28 @@ struct MainState {
     white_pieces: u64,
     black_pieces: u64,
     blacks_play: bool,
-    white_color: Color,
-    black_color: Color,
-    background_color: Color,
 }
 
 impl MainState {
-    fn new(desired_fps: u32, background_color: Color) -> MainState {
+    fn new(desired_fps: u32) -> MainState {
         MainState {
             square_size: BOARD_SIZE / 8.0,
             desired_fps,
             /*
             white_pieces: 34493956096, // Default White Pieces' Position
             black_pieces: 68987912192, // Default Black Pieces' Position
-            */
+             */
             white_pieces: 0,
             black_pieces: 0,
-            white_color: Color::CYAN,
-            black_color: Color::from_rgb(128, 128, 128), // Grey
             blacks_play: true,
-            background_color,
         }
     }
 
-    fn board(&self) -> u64 {
-        return self.black_pieces | self.white_pieces;
-    }
-
-    fn is_occupied(&self, position: u64) -> bool {
-        return self.board() & position != 0;
-    }
-
-    fn capture(&mut self, captured_mesh: u64) {
+    fn capture(&mut self, position: u64) {
         if self.blacks_play {
-            self.black_pieces |= captured_mesh;
+            self.black_pieces |= position;
         } else {
-            self.white_pieces |= captured_mesh;
+            self.white_pieces |= position;
         }
     }
 
@@ -78,6 +65,10 @@ impl MainState {
         Ok(graphics::Mesh::from_data(ctx, mesh_builder.build()))
     }
 
+    fn is_occupied(&self, position: u64) -> bool {
+        (self.black_pieces | self.white_pieces) & position != 0
+    }
+
     fn grid(&self, ctx: &mut ggez::Context) -> GameResult<graphics::Mesh> {
         let mesh_builder = &mut MeshBuilder::new();
         for i in 1..8 {
@@ -86,7 +77,7 @@ impl MainState {
                     Vec2::new(self.square_size * i as f32, 0.0),
                     Vec2::new(self.square_size * i as f32, BOARD_SIZE),
                 ],
-                4.0,
+                2.0,
                 Color::WHITE,
             )?;
             mesh_builder.line(
@@ -94,19 +85,11 @@ impl MainState {
                     Vec2::new(0.0, self.square_size * i as f32),
                     Vec2::new(BOARD_SIZE as f32, self.square_size * i as f32),
                 ],
-                4.0,
+                2.0,
                 Color::WHITE,
             )?;
         }
         Ok(graphics::Mesh::from_data(ctx, mesh_builder.build()))
-    }
-
-    fn black_pieces(&mut self, ctx: &mut ggez::Context) -> GameResult<graphics::Mesh> {
-        self.colored_mesh(ctx, self.black_pieces, self.black_color)
-    }
-
-    fn white_pieces(&mut self, ctx: &mut ggez::Context) -> GameResult<graphics::Mesh> {
-        self.colored_mesh(ctx, self.white_pieces, self.white_color)
     }
 }
 
@@ -122,41 +105,35 @@ impl EventHandler<GameError> for MainState {
                     self.capture(position);
                 }
             }
-
-            if ctx
-                .keyboard
-                .is_key_pressed(ggez::input::keyboard::KeyCode::W)
-            {
-                self.blacks_play = false;
-            } else if ctx
-                .keyboard
-                .is_key_pressed(ggez::input::keyboard::KeyCode::B)
-            {
-                self.blacks_play = true;
-            } else if ctx
-                .keyboard
-                .is_key_pressed(ggez::input::keyboard::KeyCode::Return)
-            {
-                println!(
-                    "white_pieces: {:?}, black_pieces: {:?}",
-                    self.white_pieces, self.black_pieces
-                );
-            } else if ctx
-                .keyboard
-                .is_key_pressed(ggez::input::keyboard::KeyCode::R)
-            {
-                self.white_pieces = 0;
-                self.black_pieces = 0;
-            }
         };
 
         Ok(())
     }
 
+    fn key_down_event(&mut self, _ctx: &mut ggez::Context, input: KeyInput, repeat: bool) -> GameResult {
+        if repeat {
+            return Ok(());
+        }
+        match input.keycode {
+            Some(KeyCode::W) => self.blacks_play = false,
+            Some(KeyCode::B) => self.blacks_play = true,
+            Some(KeyCode::R) => {self.white_pieces = 0; self.black_pieces = 0;},
+            Some(KeyCode::Return) => println!("White Pieces: {:?}\tBlack Pieces: {:?}", self.white_pieces, self.black_pieces),
+            _ => (),
+        }
+        Ok(())
+    }
+
     fn draw(&mut self, ctx: &mut ggez::Context) -> Result<(), GameError> {
-        let mut canvas = graphics::Canvas::from_frame(ctx, self.background_color);
-        canvas.draw(&self.black_pieces(ctx)?, graphics::DrawParam::new());
-        canvas.draw(&self.white_pieces(ctx)?, graphics::DrawParam::new());
+        let mut canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb(255, 162, 103));
+        canvas.draw(
+            &self.colored_mesh(ctx, self.black_pieces, Color::from_rgb(66, 66, 66))?,
+            graphics::DrawParam::new(),
+        );
+        canvas.draw(
+            &self.colored_mesh(ctx, self.white_pieces, Color::from_rgb(224, 224, 224))?,
+            graphics::DrawParam::new(),
+        );
         canvas.draw(&self.grid(ctx)?, graphics::DrawParam::new());
         canvas.finish(ctx)?;
         Ok(())
@@ -164,7 +141,7 @@ impl EventHandler<GameError> for MainState {
 }
 
 fn main() -> GameResult {
-    let mainstate = MainState::new(60, Color::from_rgba(150, 150, 255, 255));
+    let mainstate = MainState::new(60);
     let mut config = conf::Conf::new();
     config.window_setup.title = String::from("Reversi");
     config.window_mode.height = BOARD_SIZE.into();
