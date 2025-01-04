@@ -5,10 +5,10 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 struct Args {
     // set server host address
-    #[arg(long, default_value = "127.0.0.1")]
+    #[arg(long, short, default_value = "127.0.0.1")]
     address: String,
     // set server host port
-    #[arg(long, default_value_t = 3000)]
+    #[arg(long, short, default_value_t = 3000)]
     port: u16,
 }
 
