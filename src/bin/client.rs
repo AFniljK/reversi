@@ -5,10 +5,11 @@ use tungstenite::connect;
 fn main() {
     let args = Args::parse();
     let addr = args.addr();
-    let (_stream, response) = connect(addr.to_string()).expect("cannot connect");
+    let (mut stream, response) = connect("ws://".to_owned() + &addr).expect("cannot connect");
     println!(
         "connected to address: {:?}\tstatus: {:?}",
         addr,
         response.status()
     );
+    println!("{}", stream.read().unwrap());
 }
