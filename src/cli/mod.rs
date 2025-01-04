@@ -12,6 +12,6 @@ pub struct Args {
 
 impl Args {
     pub fn addr(&self) -> String {
-        String::from("ws://".to_owned() + &self.address + &self.port.to_string())
+        format!("ws://{}:{}", self.address, self.port)
     }
 }
