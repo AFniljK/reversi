@@ -110,15 +110,26 @@ impl EventHandler<GameError> for MainState {
         Ok(())
     }
 
-    fn key_down_event(&mut self, _ctx: &mut ggez::Context, input: KeyInput, repeat: bool) -> GameResult {
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut ggez::Context,
+        input: KeyInput,
+        repeat: bool,
+    ) -> GameResult {
         if repeat {
             return Ok(());
         }
         match input.keycode {
             Some(KeyCode::W) => self.blacks_play = false,
             Some(KeyCode::B) => self.blacks_play = true,
-            Some(KeyCode::R) => {self.white_pieces = 0; self.black_pieces = 0;},
-            Some(KeyCode::Return) => println!("White Pieces: {:?}\tBlack Pieces: {:?}", self.white_pieces, self.black_pieces),
+            Some(KeyCode::R) => {
+                self.white_pieces = 0;
+                self.black_pieces = 0;
+            }
+            Some(KeyCode::Return) => println!(
+                "White Pieces: {:?}\tBlack Pieces: {:?}",
+                self.white_pieces, self.black_pieces
+            ),
             _ => (),
         }
         Ok(())
