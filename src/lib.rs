@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 pub mod cli;
+pub mod gui;
 
 pub const GENERAL_EDGE: u64 = 35604928818740736;
 pub const TOP_EDGE: u64 = 18374686479671623680;
