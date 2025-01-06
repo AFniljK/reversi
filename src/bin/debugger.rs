@@ -39,6 +39,7 @@ fn main() -> GameResult {
     let board = Board::new(
         BOARD_SIZE,
         60,
+        true,
         Box::new(keyboard_handler),
         Box::new(capture),
         PieceConfig {
@@ -46,6 +47,7 @@ fn main() -> GameResult {
             black_pieces: 0,
             blacks_play: true,
         },
+        None,
     );
 
     let mut config = conf::Conf::new();
