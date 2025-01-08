@@ -193,6 +193,28 @@ impl EventHandler<GameError> for Board {
             )?,
             graphics::DrawParam::new(),
         );
+
+        let (ally, foe) = if self.piece_config.blacks_play {
+            (
+                self.piece_config.black_pieces,
+                self.piece_config.white_pieces,
+            )
+        } else {
+            (
+                self.piece_config.white_pieces,
+                self.piece_config.black_pieces,
+            )
+        };
+        if let Some(captures) = available_captures(ally, foe) {
+            let mut mesh = 0;
+            for key in captures.keys() {
+                mesh |= key;
+            }
+            canvas.draw(
+                &self.colored_mesh(ctx, mesh, Color::MAGENTA)?,
+                graphics::DrawParam::new(),
+            )
+        }
         canvas.draw(&self.grid(ctx)?, graphics::DrawParam::new());
         canvas.finish(ctx)?;
         Ok(())

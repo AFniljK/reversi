@@ -28,8 +28,10 @@ fn keyboard_handler(input: KeyInput, board: &Board) -> PieceConfig {
 fn capture(config: &PieceConfig, position: u64) -> PieceConfig {
     let mut config = config.clone();
     if config.blacks_play {
+        config.white_pieces &= !position;
         config.black_pieces |= position;
     } else {
+        config.black_pieces &= !position;
         config.white_pieces |= position;
     }
     config
