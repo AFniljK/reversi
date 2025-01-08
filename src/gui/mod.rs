@@ -21,6 +21,7 @@ pub struct Board {
     square_size: f32,
     desired_fps: u32,
     our_turn: bool,
+    pub debugging: bool,
     pub piece_config: PieceConfig,
     keyboard_handler: Box<dyn Fn(KeyInput, &Board) -> PieceConfig>,
     capture: Box<dyn FnMut(&PieceConfig, u64) -> PieceConfig>,
@@ -41,6 +42,7 @@ impl Board {
             square_size: board_size / 8.0,
             desired_fps,
             our_turn,
+            debugging: false,
             piece_config,
             keyboard_handler,
             capture,
@@ -105,8 +107,8 @@ impl Board {
 impl EventHandler<GameError> for Board {
     fn update(&mut self, ctx: &mut ggez::Context) -> Result<(), GameError> {
         if ctx.time.check_update_time(self.desired_fps) {
-            if !self.our_turn {
-                if let Some(stream) = &mut self.stream {
+            if let Some(stream) = &mut self.stream {
+                if !self.our_turn {
                     println!("Waiting For Position");
                     let position: u64 = stream.read().unwrap().to_text().unwrap().parse().unwrap();
                     println!("Got Position: {}", position);
@@ -132,6 +134,11 @@ impl EventHandler<GameError> for Board {
                         )
                     };
 
+                    if self.debugging {
+                        self.piece_config = (self.capture)(&self.piece_config, position);
+                        self.our_turn = false;
+                        return Ok(());
+                    }
                     let keys = match available_captures(ally, foe) {
                         Some(captures) => captures,
                         None => {

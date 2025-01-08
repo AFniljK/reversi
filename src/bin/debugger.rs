@@ -36,7 +36,7 @@ fn capture(config: &PieceConfig, position: u64) -> PieceConfig {
 }
 
 fn main() -> GameResult {
-    let board = Board::new(
+    let mut board = Board::new(
         BOARD_SIZE,
         60,
         true,
@@ -49,6 +49,7 @@ fn main() -> GameResult {
         },
         None,
     );
+    board.debugging = true;
 
     let mut config = conf::Conf::new();
     config.window_setup.title = String::from("Reversi");
