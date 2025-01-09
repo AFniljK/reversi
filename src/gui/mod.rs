@@ -6,7 +6,7 @@ use ggez::input::keyboard::KeyInput;
 use ggez::{event, graphics};
 use ggez::{event::EventHandler, GameError, GameResult};
 
-use crate::{bitboard_position, bitboard_rowcol, piece_positions, valid_move};
+use crate::{bitboard_position, bitboard_rowcol, piece_positions};
 
 pub enum Move {
     Position(u64),
@@ -54,6 +54,7 @@ pub struct Board {
     pub config: BoardConfig,
     handle_keypress: Box<dyn Fn(KeyInput, &BoardConfig) -> BoardConfig>,
     capture: Box<dyn Fn(&PieceConfig, u64) -> PieceConfig>,
+    valid: Box<dyn Fn(&PieceConfig, u64) -> bool>,
     black: Box<dyn Player>,
     white: Box<dyn Player>,
 }
@@ -64,6 +65,7 @@ impl Board {
         piece_config: PieceConfig,
         handle_keypress: Box<dyn Fn(KeyInput, &BoardConfig) -> BoardConfig>,
         capture: Box<dyn Fn(&PieceConfig, u64) -> PieceConfig>,
+        valid: Box<dyn Fn(&PieceConfig, u64) -> bool>,
         black: Box<dyn Player>,
         white: Box<dyn Player>,
     ) -> Board {
@@ -72,6 +74,7 @@ impl Board {
             config: BoardConfig::new(piece_config),
             handle_keypress,
             capture,
+            valid,
             black,
             white,
         }
@@ -145,12 +148,11 @@ impl EventHandler<GameError> for Board {
                 let row = (position.y / self.square_size) as u8;
                 let column = (position.x / self.square_size) as u8;
                 let position = bitboard_position(row, column);
-                let (ally, foe) = self.config.piece_config.ally_foe();
-                if !valid_move(ally, foe, position) {
+                if (self.valid)(&self.config.piece_config, position) {
+                    position
+                } else {
                     return Ok(());
                 }
-                println!("Played Move: {:?}", position);
-                position
             }
         };
 
