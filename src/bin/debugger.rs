@@ -26,12 +26,17 @@ fn main() -> GameResult {
     let board = Board::new(
         BOARD_SIZE / 8.0,
         PieceConfig {
+            /*
             white_pieces: 34493956096,
             black_pieces: 68987912192,
+            */
+            white_pieces: 0,
+            black_pieces: 0,
             blacks_play: true,
         },
         Box::new(handler),
         Box::new(capture),
+        Box::new(|_, _| true),
         Box::new(Client {}),
         Box::new(Client {}),
     );

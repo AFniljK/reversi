@@ -9,6 +9,7 @@ use reversi::{
     available_captures,
     cli::Args,
     gui::{Board, Move, PieceConfig, Player},
+    valid_move,
 };
 
 struct Enemy {
@@ -67,6 +68,11 @@ fn capture(config: &PieceConfig, position: u64) -> PieceConfig {
     config
 }
 
+fn valid(config: &PieceConfig, position: u64) -> bool {
+    let (ally, foe) = config.ally_foe();
+    valid_move(ally, foe, position)
+}
+
 fn main() {
     let args = Args::parse();
     let mut stream = TcpStream::connect(args.addr()).expect("cannot connect on given address");
@@ -100,6 +106,7 @@ fn main() {
             },
             Box::new(|_, config| config.clone()),
             Box::new(capture),
+            Box::new(valid),
             Box::new(Ally {}),
             Box::new(Enemy { stream }),
         )
@@ -113,6 +120,7 @@ fn main() {
             },
             Box::new(|_, config| config.clone()),
             Box::new(capture),
+            Box::new(valid),
             Box::new(Enemy { stream }),
             Box::new(Ally {}),
         )
