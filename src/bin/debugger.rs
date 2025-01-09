@@ -16,17 +16,18 @@ const BOARD_SIZE: f32 = 800.0 * 2.0;
 struct Client {}
 
 impl Player for Client {
-    fn play_move(&self, _config: &PieceConfig) -> Move {
+    fn play_move(&mut self, _config: &PieceConfig) -> Move {
         return Move::Board;
     }
+    fn enemy_move(&mut self, _current_move: u64) {}
 }
 
 fn main() -> GameResult {
     let board = Board::new(
         BOARD_SIZE / 8.0,
         PieceConfig {
-            white_pieces: 0,
-            black_pieces: 0,
+            white_pieces: 34493956096,
+            black_pieces: 68987912192,
             blacks_play: true,
         },
         Box::new(handler),
@@ -52,8 +53,8 @@ fn handler(input: KeyInput, config: &BoardConfig) -> BoardConfig {
         Some(KeyCode::B) => config.piece_config.blacks_play = true,
         Some(KeyCode::D) => config.mesh = HashMap::new(),
         Some(KeyCode::R) => {
-            config.piece_config.white_pieces = 0;
-            config.piece_config.black_pieces = 0;
+            config.piece_config.white_pieces = 34493956096;
+            config.piece_config.black_pieces = 68987912192;
             config.mesh = HashMap::new();
         }
         Some(KeyCode::S) => {
