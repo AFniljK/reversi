@@ -6,7 +6,7 @@ use ggez::input::keyboard::KeyInput;
 use ggez::{event, graphics};
 use ggez::{event::EventHandler, GameError, GameResult};
 
-use crate::{bitboard_position, bitboard_rowcol, piece_positions};
+use crate::{bitboard_position, bitboard_rowcol, piece_positions, valid_move};
 
 pub enum Move {
     Position(u64),
@@ -14,7 +14,8 @@ pub enum Move {
 }
 
 pub trait Player {
-    fn play_move(&self, config: &PieceConfig) -> Move;
+    fn play_move(&mut self, config: &PieceConfig) -> Move;
+    fn enemy_move(&mut self, current_move: u64);
 }
 
 #[derive(Clone, PartialEq)]
@@ -128,18 +129,13 @@ impl Board {
 
 impl EventHandler<GameError> for Board {
     fn update(&mut self, ctx: &mut ggez::Context) -> Result<(), GameError> {
-        let desired_fps: u32 = 60;
-        if ctx.time.check_update_time(desired_fps) {
-            return Ok(());
-        }
-
-        let player = if self.config.piece_config.blacks_play {
-            &self.black
+        let played_move = if self.config.piece_config.blacks_play {
+            self.black.play_move(&self.config.piece_config)
         } else {
-            &self.white
+            self.white.play_move(&self.config.piece_config)
         };
 
-        let position = match player.play_move(&self.config.piece_config) {
+        let position = match played_move {
             Move::Position(position) => position,
             Move::Board => {
                 if !ctx.mouse.button_pressed(event::MouseButton::Left) {
@@ -148,9 +144,22 @@ impl EventHandler<GameError> for Board {
                 let position = ctx.mouse.position();
                 let row = (position.y / self.square_size) as u8;
                 let column = (position.x / self.square_size) as u8;
-                bitboard_position(row, column)
+                let position = bitboard_position(row, column);
+                let (ally, foe) = self.config.piece_config.ally_foe();
+                if !valid_move(ally, foe, position) {
+                    return Ok(());
+                }
+                println!("Played Move: {:?}", position);
+                position
             }
         };
+
+        if self.config.piece_config.blacks_play {
+            self.white.enemy_move(position);
+        } else {
+            self.black.enemy_move(position);
+        };
+
         self.config.piece_config = (self.capture)(&self.config.piece_config, position);
 
         Ok(())
