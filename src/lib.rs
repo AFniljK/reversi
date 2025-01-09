@@ -325,6 +325,13 @@ pub fn available_captures(ally: u64, foe: u64) -> Option<HashMap<u64, u64>> {
     return Some(legal_moves);
 }
 
+pub fn valid_move(ally: u64, foe: u64, position: u64) -> bool {
+    if let Some(captures) = available_captures(ally, foe) {
+        return captures.contains_key(&position);
+    }
+    return false;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
